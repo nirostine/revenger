@@ -1,0 +1,1477 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="default">
+  <meta name="format-detection" content="telephone=no">
+  <title>Revengr</title>
+
+  <!-- Typography & KaTeX -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:wght@600;800&family=Noto+Sans+Bengali:wght@400;600;700&family=Source+Sans+3:wght@400;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.css">
+  <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.js"></script>
+  <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/contrib/auto-render.min.js"></script>
+
+  <!-- Cordova Runtime Hook -->
+  <script src="cordova.js"></script>
+
+  <style>
+    :root {
+      --bg: #F5F7FB;
+      --surface: #FFFFFF;
+      --ink: #16213E;
+      --mute: #626F8B;
+      --line: #E2E7F1;
+      --accent: #2A35D6;
+      --accentSoft: #ECEEFE;
+      --ok: #15803D;
+      --okSoft: #DCFCE7;
+      --bad: #D92D20;
+      --badSoft: #FEE4E2;
+      --amber: #B45309;
+      --amberSoft: #FEF3C7;
+      --radius: 14px;
+      color-scheme: light;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      -webkit-tap-highlight-color: transparent;
+      user-select: none;
+      -webkit-user-select: none;
+    }
+
+    html, body {
+      width: 100%;
+      height: 100%;
+      height: 100dvh;
+      overflow: hidden;
+      background: var(--bg);
+      color: var(--ink);
+      font-family: "Source Sans 3", "Noto Sans Bengali", system-ui, -apple-system, sans-serif;
+      font-size: 16px;
+      line-height: 1.5;
+      touch-action: manipulation;
+    }
+
+    .qtext, .expl, .opt > span {
+      user-select: text;
+      -webkit-user-select: text;
+    }
+
+    #app-shell {
+      display: flex;
+      flex-direction: column;
+      width: 100%;
+      height: 100%;
+      position: relative;
+    }
+
+    header {
+      flex-shrink: 0;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      height: calc(54px + env(safe-area-inset-top, 0px));
+      padding: env(safe-area-inset-top, 0px) 16px 0;
+      background: var(--surface);
+      border-bottom: 1px solid var(--line);
+      z-index: 10;
+    }
+
+    .nav-left, .nav-right {
+      display: flex;
+      align-items: center;
+      min-width: 44px;
+    }
+
+    .brand-title {
+      font-family: "Bricolage Grotesque", sans-serif;
+      font-weight: 800;
+      font-size: 20px;
+      color: var(--ink);
+      border: none;
+      background: none;
+    }
+    .brand-title span { color: var(--accent); }
+
+    .nav-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      background: none;
+      border: none;
+      color: var(--accent);
+      font-weight: 600;
+      font-size: 16px;
+      padding: 6px 2px;
+      cursor: pointer;
+    }
+    .nav-btn:active { opacity: 0.6; }
+
+    main {
+      flex: 1;
+      overflow-y: auto;
+      overflow-x: hidden;
+      -webkit-overflow-scrolling: touch;
+      overscroll-behavior-y: contain;
+      padding: 16px 16px calc(16px + env(safe-area-inset-bottom, 0px));
+    }
+
+    .bottom-dock {
+      flex-shrink: 0;
+      display: flex;
+      gap: 12px;
+      padding: 12px 16px calc(12px + env(safe-area-inset-bottom, 0px));
+      background: var(--surface);
+      border-top: 1px solid var(--line);
+      z-index: 10;
+    }
+    .bottom-dock .btn { flex: 1; }
+
+    .btn {
+      display: inline-flex;
+      justify-content: center;
+      align-items: center;
+      height: 48px;
+      padding: 0 16px;
+      font-size: 16px;
+      font-weight: 600;
+      border-radius: 12px;
+      border: 1.5px solid var(--line);
+      background: var(--surface);
+      color: var(--ink);
+      cursor: pointer;
+      transition: transform 0.08s ease;
+    }
+    .btn:active:not(:disabled) { transform: scale(0.98); background: var(--bg); }
+    .btn.pri { background: var(--accent); border-color: var(--accent); color: #fff; }
+    .btn.pri:active:not(:disabled) { background: #1e27a8; }
+    .btn:disabled { opacity: 0.45; cursor: not-allowed; }
+    .btn.sm { height: 36px; padding: 0 12px; font-size: 14px; border-radius: 8px; }
+
+    h1, h2, h3 { font-family: "Bricolage Grotesque", sans-serif; line-height: 1.2; }
+    h2 { font-size: 22px; margin-bottom: 14px; font-weight: 800; }
+    .crumb {
+      font-size: 13px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      color: var(--mute);
+      margin-bottom: 4px;
+    }
+
+    .hero-card { padding: 14px 4px 18px; }
+    .hero-card h1 { font-size: 26px; letter-spacing: -0.5px; margin-bottom: 6px; }
+    .hero-card p { color: var(--mute); font-size: 15px; }
+
+    .card-actions {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      margin-top: 10px;
+    }
+
+    .big-card {
+      display: flex;
+      flex-direction: column;
+      padding: 20px;
+      background: var(--surface);
+      border: 2px solid var(--line);
+      border-radius: var(--radius);
+      text-align: left;
+      cursor: pointer;
+      transition: transform 0.08s ease;
+    }
+    .big-card:active { transform: scale(0.98); }
+    .big-card.pri {
+      background: var(--accent);
+      border-color: var(--accent);
+      color: #FFFFFF;
+    }
+    .big-card .card-title {
+      font-family: "Bricolage Grotesque", sans-serif;
+      font-size: 22px;
+      font-weight: 800;
+    }
+    .big-card .card-desc { font-size: 14px; color: var(--mute); margin-top: 4px; }
+    .big-card.pri .card-desc { color: #DDE0FF; }
+
+    /* Support Button */
+    .support-card {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      padding: 16px 18px;
+      background: var(--surface);
+      border: 2px solid #FCD34D;
+      border-radius: var(--radius);
+      cursor: pointer;
+      box-shadow: 0 4px 12px rgba(251, 191, 36, 0.15);
+      transition: transform 0.08s ease;
+    }
+    .support-card:active { transform: scale(0.98); }
+    .support-icon {
+      display: grid;
+      place-items: center;
+      width: 44px;
+      height: 44px;
+      border-radius: 12px;
+      background: var(--amberSoft);
+      font-size: 22px;
+      flex-shrink: 0;
+    }
+    .support-title {
+      font-family: "Bricolage Grotesque", sans-serif;
+      font-size: 17px;
+      font-weight: 800;
+      color: var(--ink);
+    }
+    .support-sub { font-size: 13px; color: var(--mute); }
+
+    /* Ad Placeholders */
+    .ad-native-container {
+      margin-top: 18px;
+      padding: 14px;
+      background: var(--surface);
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+    .ad-badge {
+      display: inline-block;
+      align-self: flex-start;
+      padding: 2px 7px;
+      font-size: 10px;
+      font-weight: 700;
+      color: #fff;
+      background: #F59E0B;
+      border-radius: 4px;
+      letter-spacing: 0.5px;
+    }
+    .ad-native-content { display: flex; gap: 12px; align-items: center; }
+    .ad-native-icon {
+      width: 48px;
+      height: 48px;
+      border-radius: 8px;
+      background: var(--accentSoft);
+      display: grid;
+      place-items: center;
+      font-size: 20px;
+      flex-shrink: 0;
+    }
+    .ad-native-text { flex: 1; }
+    .ad-native-title { font-weight: 700; font-size: 15px; }
+    .ad-native-desc { font-size: 12px; color: var(--mute); }
+
+    .ad-banner-dock {
+      flex-shrink: 0;
+      width: 100%;
+      min-height: 50px;
+      background: var(--surface);
+      border-top: 1px solid var(--line);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      z-index: 8;
+    }
+
+    /* Lists */
+    .list { display: flex; flex-direction: column; gap: 10px; }
+    .list-item {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 15px 16px;
+      background: var(--surface);
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      text-align: left;
+      width: 100%;
+      font-size: 16px;
+      font-weight: 600;
+      cursor: pointer;
+    }
+    .list-item:active:not(:disabled) { background: var(--accentSoft); border-color: var(--accent); }
+    .list-item:disabled { opacity: 0.45; cursor: not-allowed; }
+    .list-item .badge { font-size: 13px; color: var(--mute); font-weight: normal; }
+
+    /* ==========================================================
+       BEAUTIFUL STEM & MULTI-COMPLETION FORMATTING
+       ========================================================== */
+    .qcard {
+      background: var(--surface);
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      padding: 18px 16px;
+      margin-bottom: 14px;
+    }
+    .qmeta { display: flex; align-items: center; gap: 8px; margin-bottom: 12px; flex-wrap: wrap; }
+    .chip {
+      display: inline-flex;
+      align-items: center;
+      padding: 3px 10px;
+      border-radius: 20px;
+      background: var(--accentSoft);
+      color: var(--accent);
+      font-size: 12px;
+      font-weight: 700;
+    }
+
+    .qtext {
+      font-size: 16.5px;
+      font-weight: 500;
+      line-height: 1.6;
+      margin-bottom: 16px;
+      word-break: break-word;
+    }
+
+    /* Stem Box */
+    .stem-box {
+      background: #F8FAFC;
+      border: 1.5px solid #E2E8F0;
+      border-left: 4.5px solid var(--accent);
+      border-radius: 10px;
+      padding: 12px 14px;
+      margin-bottom: 14px;
+      font-size: 15px;
+      line-height: 1.55;
+    }
+    .stem-instruction {
+      font-size: 12.5px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      color: var(--accent);
+      margin-bottom: 6px;
+      display: flex;
+      align-items: center;
+      gap: 5px;
+    }
+    .stem-body {
+      color: var(--ink);
+    }
+
+    /* Roman Multi-Statement List (i., ii., iii.) */
+    .roman-container {
+      display: flex;
+      flex-direction: column;
+      gap: 7px;
+      margin: 10px 0 12px;
+    }
+    .roman-row {
+      display: flex;
+      align-items: baseline;
+      gap: 10px;
+      padding: 7px 11px;
+      background: #F8FAFC;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      font-size: 15px;
+      line-height: 1.45;
+    }
+    .roman-badge {
+      font-weight: 800;
+      color: var(--accent);
+      font-size: 13.5px;
+      min-width: 20px;
+      flex-shrink: 0;
+    }
+
+    /* Final Question Prompt */
+    .prompt-row {
+      font-size: 16px;
+      font-weight: 700;
+      color: var(--ink);
+      margin-top: 10px;
+      margin-bottom: 4px;
+    }
+
+    .qimg {
+      display: block;
+      max-width: 100%;
+      max-height: 240px;
+      margin: 0 auto 14px;
+      border-radius: 8px;
+    }
+    .opts { display: flex; flex-direction: column; gap: 9px; }
+    .opt {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 12px 14px;
+      min-height: 52px;
+      border-radius: 11px;
+      border: 1.5px solid var(--line);
+      background: var(--surface);
+      text-align: left;
+      font-size: 16px;
+      cursor: pointer;
+      width: 100%;
+    }
+    .opt:active:not(:disabled) { border-color: var(--accent); background: var(--accentSoft); }
+    .opt b {
+      display: inline-grid;
+      place-items: center;
+      min-width: 28px;
+      height: 28px;
+      border-radius: 50%;
+      background: var(--accentSoft);
+      color: var(--accent);
+      font-size: 13px;
+      flex-shrink: 0;
+    }
+    .opt > span { flex: 1; overflow-x: auto; overflow-y: hidden; line-height: 1.4; }
+    .opt.sel { border-color: var(--accent); background: var(--accentSoft); }
+    .opt.ok { border-color: var(--ok); background: var(--okSoft); }
+    .opt.ok b { background: var(--ok); color: #fff; }
+    .opt.bad { border-color: var(--bad); background: var(--badSoft); }
+    .opt.bad b { background: var(--bad); color: #fff; }
+
+    .verdict {
+      margin-top: 14px;
+      padding: 12px 14px;
+      border-radius: 10px;
+      font-weight: 600;
+      font-size: 15px;
+    }
+    .verdict.ok { background: var(--okSoft); color: var(--ok); }
+    .verdict.bad { background: var(--badSoft); color: var(--bad); }
+
+    .expl {
+      margin-top: 10px;
+      padding: 10px;
+      background: var(--bg);
+      border-radius: 8px;
+      font-size: 14px;
+      color: var(--mute);
+      line-height: 1.5;
+    }
+    .katex { font-size: 1.12em; }
+
+    .timer {
+      font-family: "Bricolage Grotesque", sans-serif;
+      font-weight: 800;
+      font-size: 18px;
+      font-variant-numeric: tabular-nums;
+      color: var(--accent);
+    }
+    .timer.low { color: var(--bad); }
+
+    .overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(15, 23, 42, 0.6);
+      backdrop-filter: blur(2px);
+      z-index: 100;
+      display: flex;
+      flex-direction: column;
+      justify-content: flex-end;
+    }
+    .modal {
+      background: var(--surface);
+      border-radius: 20px 20px 0 0;
+      max-height: 80vh;
+      max-height: 80dvh;
+      display: flex;
+      flex-direction: column;
+      padding-bottom: env(safe-area-inset-bottom, 0px);
+      animation: slideUp 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+    @keyframes slideUp { from { transform: translateY(100%); } to { transform: translateY(0); } }
+    .modal-hdr {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 16px 20px;
+      border-bottom: 1px solid var(--line);
+    }
+    .modal-body { padding: 16px 20px; overflow-y: auto; -webkit-overflow-scrolling: touch; }
+    .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(46px, 1fr)); gap: 10px; }
+    .cell {
+      aspect-ratio: 1;
+      border-radius: 10px;
+      border: 1.5px solid var(--line);
+      background: var(--bg);
+      font-weight: 700;
+      font-size: 15px;
+      display: grid;
+      place-items: center;
+      cursor: pointer;
+    }
+    .cell.ok { background: var(--okSoft); border-color: var(--ok); color: var(--ok); }
+    .cell.bad { background: var(--badSoft); border-color: var(--bad); color: var(--bad); }
+    .cell.sel { background: var(--accentSoft); border-color: var(--accent); color: var(--accent); }
+    .cell.cur { outline: 2.5px solid var(--ink); outline-offset: 1px; }
+
+    .panel {
+      background: var(--surface);
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      padding: 16px;
+      margin-bottom: 12px;
+    }
+    .panel h3 { font-size: 17px; margin-bottom: 10px; }
+    .form-row { display: flex; gap: 12px; align-items: center; }
+    .ck-item { display: flex; align-items: center; gap: 10px; padding: 8px 0; font-size: 15px; }
+    input[type=number] {
+      font: inherit;
+      width: 100px;
+      height: 44px;
+      padding: 0 12px;
+      border: 2px solid var(--line);
+      border-radius: 10px;
+      background: #fff;
+    }
+    .score-display {
+      font-family: "Bricolage Grotesque", sans-serif;
+      font-size: 44px;
+      font-weight: 800;
+      color: var(--accent);
+    }
+    .empty-state {
+      padding: 30px 16px;
+      text-align: center;
+      color: var(--mute);
+      border: 2px dashed var(--line);
+      border-radius: var(--radius);
+    }
+  </style>
+</head>
+<body>
+
+<div id="app-shell">
+  <header>
+    <div class="nav-left" id="hdr-left">
+      <button class="brand-title" onclick="go('home')">Reveng<span>r</span></button>
+    </div>
+    <div class="nav-right" id="hdr-right"></div>
+  </header>
+
+  <main id="app">
+    <p style="color:var(--mute); text-align:center; margin-top:40px;">Initializing Revengr…</p>
+  </main>
+
+  <!-- Banner Dock -->
+  <div id="ad-banner-slot" class="ad-banner-dock" style="display:none;"></div>
+
+  <!-- Bottom Dock -->
+  <div id="bottom-dock" class="bottom-dock" style="display:none"></div>
+</div>
+
+<script>
+/* ====================================================================
+   1. LIVE ADMOB CONFIGURATION (Your IDs)
+   ==================================================================== */
+const ADMOB_CONFIG = {
+  APP_ID: "ca-app-pub-4178975158892431~2988171043",
+  BANNER_ID: "ca-app-pub-4178975158892431/7109434799",   // Revengr ban
+  NATIVE_ID: "ca-app-pub-4178975158892431/3393551061",   // Revengr nativ
+  REWARDED_ID: "ca-app-pub-4178975158892431/2375982866"  // Revengr rew
+};
+
+let rewardedAdInstance = null;
+let bannerAdInstance = null;
+let isRewardedAdReady = false;
+
+document.addEventListener('deviceready', initAdMob, false);
+
+async function initAdMob() {
+  if (typeof admob === 'undefined') {
+    console.info('AdMob plugin not detected. Running in browser preview.');
+    return;
+  }
+  try {
+    await admob.start();
+    loadRewardedAd();
+    showBannerAd();
+  } catch (err) {
+    console.warn('AdMob Initialization failed:', err);
+  }
+}
+
+async function showBannerAd() {
+  if (typeof admob === 'undefined') return;
+  try {
+    if (!bannerAdInstance) {
+      bannerAdInstance = new admob.BannerAd({
+        adUnitId: ADMOB_CONFIG.BANNER_ID,
+        position: 'bottom'
+      });
+    }
+    await bannerAdInstance.show();
+  } catch (err) {
+    console.warn('Could not display banner:', err);
+  }
+}
+
+async function hideBannerAd() {
+  if (bannerAdInstance) {
+    try { await bannerAdInstance.hide(); } catch (_) {}
+  }
+}
+
+async function loadRewardedAd() {
+  if (typeof admob === 'undefined') return;
+  try {
+    rewardedAdInstance = new admob.RewardedAd({
+      adUnitId: ADMOB_CONFIG.REWARDED_ID
+    });
+    rewardedAdInstance.on('load', () => { isRewardedAdReady = true; });
+    rewardedAdInstance.on('reward', (evt) => { onUserEarnedReward(evt); });
+    rewardedAdInstance.on('dismiss', () => {
+      isRewardedAdReady = false;
+      loadRewardedAd();
+    });
+    await rewardedAdInstance.load();
+  } catch (err) {
+    console.warn('Could not preload rewarded ad:', err);
+  }
+}
+
+async function watchSupportAd() {
+  if (typeof admob !== 'undefined' && rewardedAdInstance && isRewardedAdReady) {
+    try {
+      await rewardedAdInstance.show();
+      return;
+    } catch (e) {
+      console.warn('Error displaying ad:', e);
+    }
+  }
+  alert("🎉 Thank you so much for your support!\n\nYour contribution keeps Revengr free for all HSC students.");
+}
+
+function onUserEarnedReward(evt) {
+  alert("🏆 Thank You!\n\nYou've successfully supported Revengr! We truly appreciate your contribution.");
+}
+
+/* ====================================================================
+   2. APP STATE & CORE DATA
+   ==================================================================== */
+let SUBJECTS = [];
+const st = {
+  view: 'home',
+  subj: null,
+  ch: null,
+  pool: [],
+  qs: [],
+  i: 0,
+  ans: {},
+  test: null,
+  mode: null,
+  prog: {}
+};
+
+const $ = id => document.getElementById(id);
+const app = $('app');
+const bottomDock = $('bottom-dock');
+const hdrLeft = $('hdr-left');
+const hdrRight = $('hdr-right');
+const adBannerSlot = $('ad-banner-slot');
+
+const esc = s => String(s ?? '').replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const shuffle = a => {
+  const r = a.slice();
+  for (let i = r.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [r[i], r[j]] = [r[j], r[i]];
+  }
+  return r;
+};
+
+let timerInterval = null;
+const BASE = new URL('https://hsc-revision.web.app/');
+
+function U(path) {
+  if (!path) return '';
+  const value = String(path).trim();
+  if (/^(https?:|data:|blob:)/i.test(value)) return value;
+  return new URL(value.replace(/^\/+/, ''), BASE).href;
+}
+
+const reqCache = new Map();
+async function getJSON(path, options = {}) {
+  const cleanPath = String(path || '').trim();
+  const url = new URL(cleanPath, BASE);
+  const cacheKey = 'rv:' + url.href;
+
+  if (!options.forceRefresh && reqCache.has(url.href)) {
+    return reqCache.get(url.href);
+  }
+
+  const req = (async () => {
+    try {
+      const response = await fetch(url.href, {
+        method: 'GET',
+        cache: 'no-store',
+        headers: { 'Accept': 'application/json' }
+      });
+      if (!response.ok) throw new Error(`HTTP ${response.status}`);
+      const text = await response.text();
+      const parsed = JSON.parse(text);
+      try { localStorage.setItem(cacheKey, text); } catch (_) {}
+      return parsed;
+    } catch (err) {
+      try {
+        const saved = localStorage.getItem(cacheKey);
+        if (saved) return JSON.parse(saved);
+      } catch (_) {}
+      throw err;
+    }
+  })();
+
+  reqCache.set(url.href, req);
+  try { return await req; } finally { reqCache.delete(url.href); }
+}
+
+const toEn = t => String(t ?? '').replace(/[০-৯]/g, d => '০১২৩৪৫৬৭৮৯'.indexOf(d));
+function kindOf(label) {
+  const t = toEn(label).trim();
+  if (!t) return 'none';
+  return /\d/.test(t) ? 'board' : 'college';
+}
+function yearOf(label) {
+  let y = 0;
+  for (const m of toEn(label).match(/\d+/g) || []) {
+    const n = m.length <= 2 ? 2000 + +m : +m;
+    if (n > y) y = n;
+  }
+  return y;
+}
+
+const ORD = { board: 0, none: 1, college: 2 };
+function sortQs(list) {
+  return list.map((q, i) => ({ q, i }))
+    .sort((a, b) => ORD[a.q.kind] - ORD[b.q.kind] || (a.q.kind === 'board' ? b.q.year - a.q.year : 0) || a.i - b.i)
+    .map(x => x.q);
+}
+
+const SK = { 'ক':'A', 'খ':'B', 'গ':'C', 'ঘ':'D' };
+const slotKey = t => {
+  t = String(t ?? '').trim().toUpperCase().replace(/[().]/g, '');
+  return SK[t] || t;
+};
+
+function norm(x, ch) {
+  const o = Array.isArray(x.options) ? x.options : [];
+  const a = o.findIndex(p => slotKey(p.slot) === slotKey(x.correct_answer));
+  if (!x.question || !x.question.content || o.length < 2 || a < 0) return null;
+  return {
+    id: x.id,
+    yr: x.board_year || '',
+    kind: kindOf(x.board_year),
+    year: yearOf(x.board_year),
+    q: x.question,
+    img: x.has_diagram ? x.diagram_url : '',
+    o,
+    a,
+    e: x.explanation || '',
+    ch: ch.name
+  };
+}
+
+const qCache = {};
+function chapterJSONURL(ch) {
+  const candidate = ch.jsonUrl || ch.json_url || ch.url || ch.file;
+  if (!candidate) return '';
+  const value = String(candidate).trim();
+  if (/^https?:\/\//i.test(value)) return value;
+  const clean = value.replace(/^\.\//, '').replace(/^\/+/, '');
+  return new URL(clean.startsWith('data/') ? clean : `data/${clean}`, BASE).href;
+}
+
+async function loadQuestions(ch) {
+  if (qCache[ch.id]) return qCache[ch.id];
+  const url = chapterJSONURL(ch);
+  try {
+    const json = await getJSON(url);
+    if (!Array.isArray(json)) return [];
+    return (qCache[ch.id] = json.map(x => norm(x, ch)).filter(Boolean));
+  } catch (e) {
+    return (qCache[ch.id] = []);
+  }
+}
+
+/* ====================================================================
+   3. LATEX & STEM/ROMAN QUESTION STRUCTURING
+   ==================================================================== */
+function fixTeX(t) {
+  return t.replace(/(\${1,2})([\s\S]*?)\1/g, (match, delimiter, body) => {
+    body = body.replace(/\x09/g, '\\t').replace(/\x0d/g, '\\r').replace(/\n/g, '\\n');
+    if (/\\begin\{[a-zA-Z*]+\}/.test(body) && !/^\s*\\displaystyle/.test(body)) {
+      body = '\\displaystyle ' + body;
+    }
+    return delimiter + body + delimiter;
+  });
+}
+
+function wrapEmbeddedMath(text) {
+  text = text.replace(/(\([^\)\n]*?\\[a-zA-Z]+[^\)]*?\)(?:\{[^{}]*\}|[a-zA-Z0-9\^_\-\+\/\*\\]*)*)/g, m => '$' + m.trim() + '$');
+  text = text.replace(/(?<!\$)([\w\d\.]*?\\[a-zA-Z]+(?:\{[^{}]*\})*(?:[\^_]\{?[^{}\s]+\}?)?[\w\d\.\^_\-\+\*\/\=]*)(?!\$)/g, m => {
+    if (m.startsWith('$') && m.endsWith('$')) return m;
+    return '$' + m.trim() + '$';
+  });
+  text = text.replace(/(?<!\$)\b([a-zA-Z0-9]+[\^_]\{?[^{}\s]+\}?)(?!\$)/g, m => '$' + m.trim() + '$');
+  return text.replace(/\$\s*\$/g, ' ').replace(/\$\s*([\+\-\=\*\/])\s*\$/g, ' $1 ');
+}
+
+function formatMathText(raw, type) {
+  if (!raw) return '';
+  let s = String(raw).trim();
+  s = s.replace(/\x08/g, '\\b').replace(/\x0c/g, '\\f').replace(/\x09/g, '\\t').replace(/\x0d/g, '\\r').replace(/[\n\r](?=eq\b)/g, '\\n');
+
+  const outerMatch = s.match(/^(\${1,2})([\s\S]+?)\1$/);
+  if (outerMatch) {
+    const inner = outerMatch[2].trim();
+    const stripped = inner.replace(/\\text\{[^{}]*\}/g, '');
+    const hasNaturalWords = /[A-Za-z\u0980-\u09FF]{2,}\s+[A-Za-z\u0980-\u09FF]{2,}/.test(stripped)
+      || /\b(force|applied|matter|after|power|what|which|where|when|calculate|find|ratio|value|angle|between|velocity|acceleration|energy|mass)\b/i.test(stripped);
+    if (hasNaturalWords) s = inner;
+  }
+
+  if (/\$[^$]+\$|\\\([^\)]+\\\)|\\\[[\s\S]+?\\\]/.test(s)) return fixTeX(s);
+
+  const strippedCommands = s.replace(/\\[a-zA-Z]+(\{[^{}]*\})?/g, '');
+  const isNaturalLanguage = /[A-Za-z\u0980-\u09FF]{2,}\s+[A-Za-z\u0980-\u09FF]{2,}/.test(strippedCommands)
+    || /\b(force|applied|matter|after|power|what|which|where|when|calculate|find|ratio|value|angle|between|velocity|acceleration|energy|mass|is|the|are|an|as|in|on|at|to|for|with|by|from|of)\b/i.test(s);
+
+  if (!isNaturalLanguage) {
+    if (type === 'latex' || /\\[a-zA-Z]+|[=^_{}]/.test(s)) {
+      if (!s.startsWith('$')) s = '$' + s + '$';
+    }
+    return fixTeX(s);
+  }
+
+  return fixTeX(wrapEmbeddedMath(s));
+}
+
+/* Intelligent Stem + Multi-Completion MCQ Formatter */
+function beautifyQuestionText(str) {
+  let text = String(str || '').trim();
+
+  // 1. Separate Stem directive & Context
+  const stemRegex = /(Read\s+the\s+(?:following\s+)?stem\s+(?:and\s+answer|to\s+answer)[^:\n]*[:：]\s*|নিচের\s+(?:উদ্দীপকটি|অনুচ্ছেদটি)\s+পড়ে[^:\n]*[:：]\s*)/i;
+  let stemHtml = '';
+  const stemMatch = text.match(stemRegex);
+
+  if (stemMatch) {
+    const stemInstruction = stemMatch[1].trim();
+    const afterStem = text.substring(stemMatch.index + stemMatch[0].length);
+    
+    // Look for where the question starts after the stem
+    const qSplitRegex = /(The\s+examples\s+of|Which\s+one\s+is|Which\s+of\s+the|What\s+is|নিচের\s+কোনটি|কোনটি\s+সঠিক|উদ্দীপকে|উক্ত\s+)/i;
+    const qMatch = afterStem.match(qSplitRegex);
+
+    if (qMatch && qMatch.index > 20) {
+      const stemBody = afterStem.substring(0, qMatch.index).trim();
+      text = afterStem.substring(qMatch.index).trim();
+      stemHtml = `
+        <div class="stem-box">
+          <div class="stem-instruction">📑 Context / Stem</div>
+          <div class="stem-body" style="font-weight:600; margin-bottom:5px; font-size:13.5px; color:var(--mute);">${esc(stemInstruction)}</div>
+          <div class="stem-body">${esc(stemBody)}</div>
+        </div>`;
+    }
+  }
+
+  // 2. Identify Roman Numeral Points (i., ii., iii.)
+  // Matches "i. ... ii. ... iii. ..." or "i) ... ii) ... iii) ..."
+  const romanCheck = /(?:[\s\-–—]|^)(?:i|১)[\.\)]([\s\S]*?)(?:[\s\-–—])(?:ii|২)[\.\)]([\s\S]*?)(?:[\s\-–—])(?:iii|৩)[\.\)]([\s\S]*?)(Which\s+(?:one\s+)?(?:of\s+the\s+following\s+)?is\s+correct|নিচের\s+কোনটি\s+সঠিক|কোনটি\s+সঠিক|$)/i;
+  const rMatch = text.match(romanCheck);
+
+  if (rMatch) {
+    const leadText = text.substring(0, rMatch.index).replace(/[\-–—\s]+$/, '').trim();
+    const item1 = rMatch[1].trim();
+    const item2 = rMatch[2].trim();
+    const item3 = rMatch[3].trim();
+    const closingPrompt = (rMatch[4] || 'Which one is correct?').trim().replace(/\?*$/, '?');
+
+    return `
+      ${stemHtml}
+      ${leadText ? `<div style="margin-bottom:8px;">${esc(leadText)}:</div>` : ''}
+      <div class="roman-container">
+        <div class="roman-row"><span class="roman-badge">i.</span><span>${esc(item1)}</span></div>
+        <div class="roman-row"><span class="roman-badge">ii.</span><span>${esc(item2)}</span></div>
+        <div class="roman-row"><span class="roman-badge">iii.</span><span>${esc(item3)}</span></div>
+      </div>
+      <div class="prompt-row">${esc(closingPrompt)}</div>`;
+  }
+
+  // If no roman numerals, return formatted with stem if available
+  return stemHtml ? `${stemHtml}<div>${esc(text)}</div>` : `<span>${esc(text)}</span>`;
+}
+
+function rc(it, isQuestion = false) {
+  if (!it) return '';
+  if (it.type === 'image') return `<img class="qimg" src="${esc(U(it.content))}" alt="" onerror="this.style.display='none'">`;
+  
+  const formatted = formatMathText(it.content, it.type);
+  if (isQuestion) {
+    return beautifyQuestionText(formatted);
+  }
+  return `<span>${esc(formatted)}</span>`;
+}
+
+function typeset() {
+  if (window.renderMathInElement) {
+    renderMathInElement(app, {
+      throwOnError: false,
+      macros: { '\\arraystretch': '1.3', '\\degree': '^\\circ' },
+      delimiters: [
+        { left: '$$', right: '$$', display: false },
+        { left: '$', right: '$', display: false },
+        { left: '\\(', right: '\\)', display: false },
+        { left: '\\[', right: '\\]', display: true }
+      ]
+    });
+  }
+}
+
+/* ====================================================================
+   4. ROUTING & SCREENS
+   ==================================================================== */
+function go(v, extra) {
+  clearInterval(timerInterval);
+  $('ov')?.remove();
+  Object.assign(st, { view: v }, extra || {});
+  render();
+}
+
+function render() {
+  hdrRight.innerHTML = '';
+  bottomDock.style.display = 'none';
+  bottomDock.innerHTML = '';
+
+  if (st.view === 'home') {
+    adBannerSlot.style.display = 'flex';
+    adBannerSlot.innerHTML = `<span style="font-size:11px; color:var(--mute); letter-spacing:0.5px;">SPONSORED</span>`;
+    showBannerAd();
+  } else if (st.view === 'practice' || st.view === 'test') {
+    adBannerSlot.style.display = 'none';
+    hideBannerAd();
+  } else {
+    adBannerSlot.style.display = 'none';
+  }
+
+  if (st.view === 'home') {
+    hdrLeft.innerHTML = `<button class="brand-title" onclick="go('home')">Reveng<span>r</span></button>`;
+  } else {
+    let backTarget = 'home';
+    if (st.view === 'chapters' || st.view === 'tsetup') backTarget = 'subjects';
+    else if (st.view === 'pmode') backTarget = 'chapters';
+    else if (st.view === 'practice') backTarget = 'pmode';
+    else if (st.view === 'test') backTarget = 'promptQuitTest';
+    else if (st.view === 'result') backTarget = 'home';
+
+    if (backTarget === 'promptQuitTest') {
+      hdrLeft.innerHTML = `<button class="nav-btn" onclick="if(confirm('Quit the test?')) go('home')">‹ Quit</button>`;
+    } else {
+      hdrLeft.innerHTML = `<button class="nav-btn" onclick="go('${backTarget}')">‹ Back</button>`;
+    }
+  }
+
+  const views = { home, subjects, chapters, pmode, practice, tsetup, test, result };
+  if (views[st.view]) views[st.view]();
+
+  typeset();
+  app.scrollTop = 0;
+}
+
+function home() {
+  app.innerHTML = `
+    <div class="hero-card">
+      <h1>HSC MCQ Practice</h1>
+      <p>Board questions and chapter-wise mock tests in English version.</p>
+    </div>
+    <div class="card-actions">
+      <div class="big-card pri" onclick="go('subjects', { mode: 'practice' })">
+        <div class="card-title">Practice Mode</div>
+        <div class="card-desc">Instant answer and explanation after every question.</div>
+      </div>
+      <div class="big-card" onclick="go('subjects', { mode: 'test' })">
+        <div class="card-title">Test Mode</div>
+        <div class="card-desc">Timed mock test. Chapter-wise or mixed.</div>
+      </div>
+
+      <div class="support-card" onclick="watchSupportAd()">
+        <div class="support-icon">🎁</div>
+        <div>
+          <div class="support-title">Support Revengr</div>
+          <div class="support-sub">Watch a short sponsor video and help to add the app to the playstore</div>
+        </div>
+      </div>
+    </div>`;
+}
+
+function subjects() {
+  app.innerHTML = `
+    <p class="crumb">${st.mode === 'test' ? 'Test Setup' : 'Practice'}</p>
+    <h2>Choose a Subject</h2>
+    <div class="list">
+      ${SUBJECTS.map(s => `
+        <button class="list-item" onclick="pickSubj('${s.id}')">
+          <span>${esc(s.name)}</span>
+          <span class="badge">${s.chapters.length} Ch</span>
+        </button>
+      `).join('')}
+    </div>
+
+    <!-- Native Ad Placement Container -->
+    <div class="ad-native-container" id="admob-native-slot">
+      <span class="ad-badge">SPONSORED</span>
+      <div class="ad-native-content">
+        <div class="ad-native-icon">📢</div>
+        <div class="ad-native-text">
+          <div class="ad-native-title">Partner University & Resources</div>
+          <div class="ad-native-desc">Explore scholarships and model test materials.</div>
+        </div>
+      </div>
+    </div>`;
+}
+
+function pickSubj(id) {
+  st.subj = SUBJECTS.find(s => s.id === id);
+  go(st.mode === 'test' ? 'tsetup' : 'chapters');
+}
+
+function chapters() {
+  app.innerHTML = `
+    <p class="crumb">${esc(st.subj.name)}</p>
+    <h2>Choose a Chapter</h2>
+    <div class="list">
+      ${st.subj.chapters.map((c, i) => `
+        <button class="list-item" onclick="pickCh(${i})">
+          <span>${i + 1}. ${esc(c.name)}</span>
+        </button>
+      `).join('')}
+    </div>`;
+}
+
+const KIND_LABELS = {
+  all: 'All Questions',
+  board: 'Board Questions Only',
+  college: 'Top Colleges Only',
+  none: 'Other Questions'
+};
+
+async function pickCh(i) {
+  st.ch = st.subj.chapters[i];
+  app.innerHTML = `<p style="color:var(--mute); text-align:center; margin-top:40px;">Loading questions…</p>`;
+  st.pool = await loadQuestions(st.ch);
+  go('pmode');
+}
+
+function pmode() {
+  const count = k => k === 'all' ? st.pool.length : st.pool.filter(q => q.kind === k).length;
+  app.innerHTML = `
+    <p class="crumb">${esc(st.subj.name)}</p>
+    <h2>${esc(st.ch.name)}</h2>
+    <div class="list">
+      ${Object.keys(KIND_LABELS).map(k => {
+        const n = count(k);
+        return `
+          <button class="list-item" ${n ? `onclick="startPractice('${k}')"` : 'disabled'}>
+            <span>${KIND_LABELS[k]}</span>
+            <span class="badge">${n} MCQs</span>
+          </button>`;
+      }).join('')}
+    </div>
+    ${!st.pool.length ? '<p class="empty-state" style="margin-top:20px;">No questions found for this chapter.</p>' : ''}`;
+}
+
+function startPractice(k) {
+  const key = st.ch.id + '|' + k;
+  st.prog = st.prog || {};
+  const list = sortQs(k === 'all' ? st.pool : st.pool.filter(q => q.kind === k));
+  const p = (st.prog[key] = st.prog[key] || { ans: {}, i: 0 });
+  Object.assign(st, {
+    qs: list,
+    ans: p.ans,
+    pk: key,
+    i: Math.max(0, Math.min(p.i, list.length - 1))
+  });
+  go('practice');
+}
+
+function practice() {
+  const q = st.qs[st.i];
+  const a = st.ans[st.i];
+  const n = st.qs.length;
+  st.prog[st.pk].i = st.i;
+
+  hdrRight.innerHTML = `<button class="btn sm" onclick="openGrid()">▦ Grid</button>`;
+
+  app.innerHTML = `
+    <div class="qmeta">
+      <span class="chip">Q ${st.i + 1} of ${n}</span>
+      ${q.yr ? `<span class="chip" style="background:var(--line); color:var(--ink)">${esc(q.yr)}</span>` : ''}
+    </div>
+    <div class="qcard">
+      <div class="qtext">${rc(q.q, true)}</div>
+      ${q.img ? `<img class="qimg" src="${esc(U(q.img))}" alt="Diagram" onerror="this.style.display='none'">` : ''}
+      <div class="opts">
+        ${q.o.map((t, k) => {
+          let c = '';
+          if (a !== undefined) {
+            if (k === q.a) c = 'ok';
+            else if (k === a) c = 'bad';
+          }
+          return `
+            <button class="opt ${c}" ${a !== undefined ? 'disabled' : ''} onclick="answer(${k})">
+              <b>${esc(t.slot)}</b>
+              ${rc(t, false)}
+            </button>`;
+        }).join('')}
+      </div>
+      ${a !== undefined ? `
+        <div class="verdict ${a === q.a ? 'ok' : 'bad'}">
+          ${a === q.a ? 'Correct!' : 'Incorrect. Correct option: ' + esc(q.o[q.a].slot)}
+        </div>
+        ${q.e ? `<div class="expl">${rc({ type: 'text', content: q.e }, false)}</div>` : ''}
+      ` : ''}
+    </div>`;
+
+  bottomDock.style.display = 'flex';
+  bottomDock.innerHTML = `
+    <button class="btn" ${st.i === 0 ? 'disabled' : ''} onclick="st.i--; render()">Previous</button>
+    ${st.i < n - 1
+      ? `<button class="btn pri" onclick="st.i++; render()">Next</button>`
+      : `<button class="btn pri" onclick="go('pmode')">Done</button>`}`;
+}
+
+function answer(k) {
+  if (st.ans[st.i] === undefined) {
+    st.ans[st.i] = k;
+    render();
+  }
+}
+
+function openGrid() {
+  const m = document.createElement('div');
+  m.className = 'overlay';
+  m.id = 'ov';
+  m.onclick = e => { if (e.target === m) m.remove(); };
+
+  const cells = st.qs.map((q, i) => {
+    const a = st.ans[i];
+    const c = a === undefined ? '' : (a === q.a ? 'ok' : 'bad');
+    return `<button class="cell ${c} ${i === st.i ? 'cur' : ''}" onclick="jump(${i})">${i + 1}</button>`;
+  }).join('');
+
+  m.innerHTML = `
+    <div class="modal">
+      <div class="modal-hdr">
+        <h3>Question Overview</h3>
+        <button class="btn sm" onclick="$('ov').remove()">Close</button>
+      </div>
+      <div class="modal-body">
+        <div class="grid">${cells}</div>
+      </div>
+    </div>`;
+  document.body.appendChild(m);
+}
+
+function jump(i) {
+  $('ov')?.remove();
+  st.i = i;
+  render();
+}
+
+function tsetup() {
+  const s = st.subj;
+  app.innerHTML = `
+    <p class="crumb">Test · ${esc(s.name)}</p>
+    <h2>Configure Test</h2>
+    <div class="panel">
+      <h3>Format</h3>
+      <div class="form-row">
+        <label class="ck-item"><input type="radio" name="tt" value="one" checked onchange="tsType()"> Single Chapter</label>
+        <label class="ck-item"><input type="radio" name="tt" value="mix" onchange="tsType()"> Mixed Chapters</label>
+      </div>
+    </div>
+    <div class="panel">
+      <h3 id="chh">Select Chapter</h3>
+      <div id="chl">
+        ${s.chapters.map((c, i) => `
+          <label class="ck-item">
+            <input type="checkbox" value="${i}" onchange="tsPick(this)"> ${i + 1}. ${esc(c.name)}
+          </label>
+        `).join('')}
+      </div>
+    </div>
+    <div class="panel">
+      <h3>Count & Duration</h3>
+      <div class="form-row" style="margin-top:8px">
+        <label style="font-size:14px">Questions<br><input id="cnt" type="number" min="1" value="20" oninput="tsTime(true)"></label>
+        <label style="font-size:14px">Minutes<br><input id="tm" type="number" min="1" value="18" oninput="tsClamp()"></label>
+      </div>
+      <p id="er" style="color:var(--bad); font-size:14px; margin-top:8px; font-weight:600;"></p>
+    </div>
+    <button class="btn pri" style="width:100%; margin-top:10px" onclick="startTest()">Start Test</button>`;
+}
+
+const tsMode = () => document.querySelector('input[name=tt]:checked').value;
+function tsType() {
+  const one = tsMode() === 'one';
+  $('chh').textContent = one ? 'Select Chapter' : 'Select Chapters';
+  if (one) {
+    let f = false;
+    document.querySelectorAll('#chl input').forEach(x => {
+      if (x.checked && f) x.checked = false;
+      else if (x.checked) f = true;
+    });
+  }
+}
+function tsPick(el) {
+  if (tsMode() === 'one' && el.checked) {
+    document.querySelectorAll('#chl input').forEach(x => {
+      if (x !== el) x.checked = false;
+    });
+  }
+}
+const maxTime = n => Math.max(1, n - 2);
+function tsTime(reset) {
+  const n = Math.max(1, +$('cnt').value || 1);
+  if (reset) $('tm').value = maxTime(n);
+  tsClamp();
+}
+function tsClamp() {
+  const n = Math.max(1, +$('cnt').value || 1);
+  const t = $('tm');
+  const m = maxTime(n);
+  if (+t.value > m) {
+    t.value = m;
+    $('er').textContent = `Max time allowed is ${m} min for ${n} MCQs.`;
+  } else {
+    $('er').textContent = '';
+  }
+}
+
+function balanced(pools, total) {
+  const take = pools.map(() => 0);
+  let left = Math.min(total, pools.reduce((s, p) => s + p.length, 0));
+  while (left > 0) {
+    const open = pools.map((p, i) => i).filter(i => take[i] < pools[i].length);
+    if (!open.length) break;
+    const share = Math.max(1, Math.floor(left / open.length));
+    for (const i of open) {
+      if (left <= 0) break;
+      const g = Math.min(share, pools[i].length - take[i], left);
+      take[i] += g;
+      left -= g;
+    }
+  }
+  return shuffle(pools.flatMap((p, i) => shuffle(p).slice(0, take[i])));
+}
+
+async function startTest() {
+  const chs = [...document.querySelectorAll('#chl input:checked')].map(x => st.subj.chapters[+x.value]);
+  if (!chs.length) {
+    $('er').textContent = 'Please select at least one chapter.';
+    return;
+  }
+  const n = Math.max(1, +$('cnt').value || 1);
+  const mins = Math.min(Math.max(1, +$('tm').value || 1), maxTime(n));
+  app.innerHTML = `<p style="color:var(--mute); text-align:center; margin-top:40px;">Generating test…</p>`;
+  const pools = await Promise.all(chs.map(loadQuestions));
+  const qs = balanced(pools, n);
+  if (!qs.length) {
+    alert('The selected chapters have no questions yet.');
+    go('tsetup');
+    return;
+  }
+  st.test = { qs, ans: {}, i: 0, end: Date.now() + mins * 60000 };
+  go('test');
+}
+
+function test() {
+  const t = st.test;
+  const q = t.qs[t.i];
+  const a = t.ans[t.i];
+  const n = t.qs.length;
+
+  hdrRight.innerHTML = `
+    <span class="timer" id="tmr" style="margin-right:8px"></span>
+    <button class="btn sm" onclick="tGrid()">▦</button>`;
+
+  app.innerHTML = `
+    <div class="qmeta">
+      <span class="chip">Q ${t.i + 1} of ${n}</span>
+      <span style="font-size:13px; color:var(--mute)">${esc(q.ch)}</span>
+    </div>
+    <div class="qcard">
+      <div class="qtext">${rc(q.q, true)}</div>
+      ${q.img ? `<img class="qimg" src="${esc(U(q.img))}" alt="Diagram" onerror="this.style.display='none'">` : ''}
+      <div class="opts">
+        ${q.o.map((x, k) => `
+          <button class="opt ${a === k ? 'sel' : ''}" onclick="tPick(${k})">
+            <b>${esc(x.slot)}</b>
+            ${rc(x, false)}
+          </button>
+        `).join('')}
+      </div>
+    </div>`;
+
+  bottomDock.style.display = 'flex';
+  bottomDock.innerHTML = `
+    <button class="btn" ${t.i === 0 ? 'disabled' : ''} onclick="st.test.i--; render()">Previous</button>
+    ${t.i < n - 1
+      ? `<button class="btn pri" onclick="st.test.i++; render()">Next</button>`
+      : `<button class="btn pri" onclick="if(confirm('Submit this test?')) finish()">Submit</button>`}`;
+
+  clearInterval(timerInterval);
+  const updateTimer = () => {
+    const s = Math.max(0, Math.round((t.end - Date.now()) / 1000));
+    const el = $('tmr');
+    if (el) {
+      el.textContent = `${String(Math.floor(s / 60)).padStart(2, '0')}:${String(s % 60).padStart(2, '0')}`;
+      el.className = 'timer' + (s < 60 ? ' low' : '');
+    }
+    if (s <= 0) finish();
+  };
+  updateTimer();
+  timerInterval = setInterval(updateTimer, 1000);
+}
+
+function tPick(k) {
+  st.test.ans[st.test.i] = k;
+  render();
+}
+
+function tGrid() {
+  const t = st.test;
+  const m = document.createElement('div');
+  m.className = 'overlay';
+  m.id = 'ov';
+  m.onclick = e => { if (e.target === m) m.remove(); };
+
+  m.innerHTML = `
+    <div class="modal">
+      <div class="modal-hdr">
+        <h3>Question Grid</h3>
+        <button class="btn sm" onclick="$('ov').remove()">Close</button>
+      </div>
+      <div class="modal-body">
+        <div class="grid">${t.qs.map((q, i) => `
+          <button class="cell ${t.ans[i] !== undefined ? 'sel' : ''} ${i === t.i ? 'cur' : ''}" onclick="$('ov').remove(); st.test.i = ${i}; render();">
+            ${i + 1}
+          </button>
+        `).join('')}</div>
+        <button class="btn bad" style="width:100%; margin-top:20px; border-color:var(--bad); color:var(--bad)" onclick="if(confirm('Submit the test now?')) finish()">
+          Submit Test Now
+        </button>
+      </div>
+    </div>`;
+  document.body.appendChild(m);
+}
+
+function finish() {
+  clearInterval(timerInterval);
+  $('ov')?.remove();
+  go('result');
+}
+
+function result() {
+  const t = st.test;
+  let correct = 0, wrong = 0, unans = 0;
+  t.qs.forEach((q, i) => {
+    const a = t.ans[i];
+    if (a === undefined) unans++;
+    else if (a === q.a) correct++;
+    else wrong++;
+  });
+
+  app.innerHTML = `
+    <h2>Test Complete</h2>
+    <div class="panel" style="text-align:center">
+      <div class="score-display">${correct} / ${t.qs.length}</div>
+      <p style="color:var(--mute); font-weight:600; font-size:15px; margin-top:4px">
+        ${correct} Correct · ${wrong} Wrong · ${unans} Unanswered
+      </p>
+    </div>
+    <div style="display:flex; gap:10px; margin-bottom:16px;">
+      <button class="btn pri" style="flex:1" onclick="go('home')">Home</button>
+      <button class="btn" style="flex:1" onclick="go('tsetup')">Retake</button>
+    </div>
+    <h3 style="margin-bottom:12px;">Detailed Review</h3>
+    <div class="list">
+      ${t.qs.map((q, i) => {
+        const a = t.ans[i];
+        return `
+          <div class="qcard">
+            <div class="qmeta">
+              <span class="chip">Q${i + 1}</span>
+              <span style="font-size:13px; color:var(--mute)">${esc(q.ch)}</span>
+            </div>
+            <div class="qtext">${rc(q.q, true)}</div>
+            ${q.img ? `<img class="qimg" src="${esc(U(q.img))}" alt="Diagram" onerror="this.style.display='none'">` : ''}
+            <div class="opts">
+              ${q.o.map((x, k) => `
+                <div class="opt ${k === q.a ? 'ok' : (k === a ? 'bad' : '')}">
+                  <b>${esc(x.slot)}</b>
+                  ${rc(x, false)}
+                </div>
+              `).join('')}
+            </div>
+            <div class="expl">
+              ${a === undefined ? 'Skipped.' : (a === q.a ? 'Correct answer.' : 'You chose: ' + esc(q.o[a].slot) + '.')}
+              ${rc({ type: 'text', content: q.e }, false)}
+            </div>
+          </div>`;
+      }).join('')}
+    </div>`;
+}
+
+/* ---------- Zoom & Touch Lock ---------- */
+['gesturestart', 'gesturechange', 'gestureend'].forEach(ev => {
+  document.addEventListener(ev, e => e.preventDefault(), { passive: false });
+});
+
+document.addEventListener('touchmove', e => {
+  if (e.touches && e.touches.length > 1) e.preventDefault();
+}, { passive: false });
+
+let lastTap = 0;
+document.addEventListener('touchend', e => {
+  const now = Date.now();
+  if (now - lastTap <= 300) e.preventDefault();
+  lastTap = now;
+}, { passive: false });
+
+/* ---------- Manifest Initialization ---------- */
+async function initApp() {
+  try {
+    const manifest = await getJSON('data/manifest.json', { forceRefresh: true });
+    if (!manifest || !Array.isArray(manifest.subjects)) throw new Error('Invalid manifest');
+
+    SUBJECTS = manifest.subjects.map(s => ({
+      ...s,
+      chapters: (Array.isArray(s.chapters) ? s.chapters : []).map(c => ({
+        ...c,
+        jsonUrl: chapterJSONURL(c)
+      }))
+    }));
+
+    render();
+  } catch (err) {
+    app.innerHTML = `
+      <div class="empty-state" style="margin-top:40px">
+        <h2>Offline or Loading Error</h2>
+        <p style="font-size:14px; margin-top:8px">${esc(err.message || 'Unable to connect')}</p>
+        <button class="btn pri" style="margin-top:16px" onclick="initApp()">Retry</button>
+      </div>`;
+  }
+}
+
+document.addEventListener('DOMContentLoaded', initApp);
+</script>
+</body>
+</html>

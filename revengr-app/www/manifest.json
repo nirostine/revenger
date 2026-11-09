@@ -1,0 +1,10 @@
+{
+  "name": "Revengr",
+  "short_name": "Revengr",
+  "start_url": "index.html",
+  "display": "standalone",
+  "background_color": "#F5F7FB",
+  "theme_color": "#2A35D6",
+  "icons": [],
+  "orientation": "portrait"
+}
